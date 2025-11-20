@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Home Control</title>
+<style>
+  body { font-family: sans-serif; background: #eee; padding: 20px; }
+  .control { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 10px; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+  .switch input { display: none; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: 0.4s; border-radius: 34px; }
+  .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px;
+                   background-color: white; transition: 0.4s; border-radius: 50%; }
+  input:checked + .slider { background-color: #2196F3; }
+  input:checked + .slider:before { transform: translateX(26px); }
+  .color-picker { width: 100%; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="control">
+  <h3>Quick Control</h3>
+  <div class="toggle">
+    <span>Light</span>
+    <label class="switch">
+      <input type="checkbox" id="lightToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle">
+    <span>Air Purifier</span>
+    <label class="switch">
+      <input type="checkbox" id="airToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+</div>
+
+<div class="control">
+  <h3>Color</h3>
+  <input type="color" id="colorPicker" class="color-picker">
+  <input type="range" min="0" max="100" value="50" id="brightness">
+</div>
+
+<script>
+  const lightToggle = document.getElementById('lightToggle');
+  const airToggle = document.getElementById('airToggle');
+  const colorPicker = document.getElementById('colorPicker');
+  const brightness = document.getElementById('brightness');
+
+  lightToggle.addEventListener('change', () => {
+    console.log('Light is', lightToggle.checked ? 'ON' : 'OFF');
+  });
+  airToggle.addEventListener('change', () => {
+    console.log('Air Purifier is', airToggle.checked ? 'ON' : 'OFF');
+  });
+  colorPicker.addEventListener('input', () => {
+    console.log('Selected color:', colorPicker.value);
+  });
+  brightness.addEventListener('input', () => {
+    console.log('Brightness:', brightness.value);
+  });
+</script>
+
+</body>
+</html>
