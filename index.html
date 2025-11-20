@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Home Control</title>
+<title>Home page</title>
 <style>
-  body { font-family: sans-serif; background: #eee; padding: 20px; }
+  body { font-family: Cursive; background: #eee; padding: 20px; }
   .control { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 10px; }
   .toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
@@ -64,6 +64,45 @@
     console.log('Brightness:', brightness.value);
   });
 </script>
+<!-- Bottom Toolbar -->
+<style>
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-around;
+    border-top: 2px solid #ddd;
+  }
+  .bottom-bar a {
+    text-decoration: none;
+    color: #333;
+    text-align: center;
+    font-size: 14px;
+  }
+  .bottom-bar img {
+    width: 28px;
+    height: 28px;
+    display: block;
+    margin: 0 auto 4px;
+  }
+</style>
+
+<div class="bottom-bar">
+  <a href="index.html">
+    <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">
+    Home
+  </a>
+  <a href="stat.html">
+    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">
+    Stats
+  </a>
+</div>
+
+
 
 </body>
 </html>

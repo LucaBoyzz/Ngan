@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics</title>
+
+<style>
+  body {
+    font-family: sans-serif;
+    background: #d9d9d9;
+    padding: 20px;
+    margin: 0;
+  }
+
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    margin-top: 0;
+  }
+
+  .aq-value {
+    font-size: 48px;
+    font-weight: bold;
+  }
+
+  .aq-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .status-dot {
+    width: 40px;
+    height: 40px;
+    border: 5px solid #4CAF50;
+    border-radius: 50%;
+  }
+
+  /* simple chart */
+  .chart {
+    width: 100%;
+    height: 160px;
+    background: url("https://i.imgur.com/edCwzZY.png"); /* เส้น background graph */
+    background-size: cover;
+    position: relative;
+  }
+
+  .chart-line {
+    stroke: #8BC34A;
+    stroke-width: 3;
+    fill: none;
+  }
+
+  .chart-dot {
+    fill: #4CAF50;
+  }
+
+  /* bottom bar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-around;
+    border-top: 2px solid #ddd;
+  }
+  .bottom-bar a {
+    text-decoration: none;
+    color: #333;
+    text-align: center;
+    font-size: 14px;
+  }
+  .bottom-bar img {
+    width: 28px;
+    height: 28px;
+    display: block;
+    margin: 0 auto 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Air Quality Card -->
+<div class="card">
+  <h3>Air Quality</h3>
+  <div class="aq-value">149</div>
+  <div class="aq-status">
+    <span>CO₂ Level</span>
+    <div>
+      <div class="status-dot"></div>
+      <small style="display:block; text-align:center;">Good</small>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly Statistics Card -->
+<div class="card">
+  <h3>Weekly Statistics</h3>
+
+  <!-- Graph -->
+  <svg width="100%" height="180" viewBox="0 0 300 180">
+    <polyline class="chart-line"
+      points="
+        10,150
+        50,130
+        90,160
+        130,110
+        170,100
+        210,70
+        250,90
+      " />
+    <!-- dots -->
+    <circle class="chart-dot" cx="10" cy="150" r="5"></circle>
+    <circle class="chart-dot" cx="50" cy="130" r="5"></circle>
+    <circle class="chart-dot" cx="90" cy="160" r="5"></circle>
+    <circle class="chart-dot" cx="130" cy="110" r="5"></circle>
+    <circle class="chart-dot" cx="170" cy="100" r="5"></circle>
+    <circle class="chart-dot" cx="210" cy="70" r="5"></circle>
+    <circle class="chart-dot" cx="250" cy="90" r="5"></circle>
+  </svg>
+
+</div>
+
+<!-- Bottom toolbar -->
+<div class="bottom-bar">
+  <a href="index.html">
+    <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">
+    Home
+  </a>
+  <a href="stat.html">
+    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">
+    Stats
+  </a>
+</div>
+<script>
+  // ====== AQI random ======
+  const aqValue = document.querySelector(".aq-value");
+
+  function updateAQ() {
+    const value = 145 + Math.floor(Math.random() * 6); // 145–150
+    aqValue.textContent = value;
+  }
+  setInterval(updateAQ, 1000);
+
+
+  // ====== GRAPH ANIMATION ======
+  const graphLine = document.getElementById("graphLine");
+  const dotsGroup = document.getElementById("dots");
+
+  let points = [
+    { x: 10,  y: 140 },
+    { x: 50,  y: 135 },
+    { x: 90,  y: 150 },
+    { x: 130, y: 120 },
+    { x: 170, y: 110 },
+    { x: 210, y: 95 },
+    { x: 250, y: 130 },
+  ];
+
+  function drawGraph() {
+    // สร้าง polyline
+    const pointString = points.map(p => `${p.x},${p.y}`).join(" ");
+    graphLine.setAttribute("points", pointString);
+
+    // วาดจุดใหม่ทุกครั้ง
+    dotsGroup.innerHTML = "";
+    points.forEach(p => {
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", p.x);
+      c.setAttribute("cy", p.y);
+      c.setAttribute("r", 6);
+      c.setAttribute("fill", "#4CAF50");
+      dotsGroup.appendChild(c);
+    });
+  }
+
+  function randomShift() {
+    points = points.map(p => {
+      let ny = p.y + (Math.random() * 20 - 10);
+
+      if (ny < 60) ny = 60;
+      if (ny > 160) ny = 160;
+
+      return { x: p.x, y: ny };
+    });
+
+    drawGraph();
+  }
+
+  drawGraph();
+  setInterval(randomShift, 1000);
+</script>
+
+</body>
+</html>
