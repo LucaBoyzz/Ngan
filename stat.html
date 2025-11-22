@@ -12,56 +12,39 @@
     padding: 20px;
     margin: 0;
   }
-
   .card {
     background: white;
     padding: 20px;
     border-radius: 15px;
     margin-bottom: 20px;
   }
-
   h3 {
     margin-top: 0;
   }
-
   .aq-value {
     font-size: 48px;
     font-weight: bold;
   }
-
   .aq-status {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-
   .status-dot {
     width: 40px;
     height: 40px;
-    border: 5px solid #a31000;
+    border: 5px solid #00ff73;
     border-radius: 50%;
   }
-
-  /* simple chart */
-  .chart {
-    width: 100%;
-    height: 160px;
-    background: url("https://i.imgur.com/edCwzZY.png"); /* เส้น background graph */
-    background-size: cover;
-    position: relative;
-  }
-
   .chart-line {
-    stroke: #ff0000;
+    stroke: #00ab50;
     stroke-width: 3;
     fill: none;
   }
-
   .chart-dot {
-    fill: rgb(179, 51, 0);
+    fill: rgb(0, 255, 106);
+    cursor: pointer;
   }
-
-  /* bottom bar */
   .bottom-bar {
     position: fixed;
     bottom: 0;
@@ -85,16 +68,29 @@
     display: block;
     margin: 0 auto 4px;
   }
+  .tooltip {
+    position: absolute;
+    padding: 6px 10px;
+    background: black;
+    color: white;
+    font-size: 12px;
+    border-radius: 6px;
+    pointer-events: none;
+    transform: translate(-50%, -120%);
+    white-space: nowrap;
+    display: none;
+  }
 </style>
 </head>
 <body>
 
-<!-- Air Quality Card -->
+<div id="tooltip" class="tooltip"></div>
+
 <div class="card">
   <h3>Air Quality</h3>
   <div class="aq-value">149</div>
   <div class="aq-status">
-    <span>CO₂ Level</span>
+    <span>Air Level</span>
     <div>
       <div class="status-dot"></div>
       <small style="display:block; text-align:center;">Good</small>
@@ -102,35 +98,24 @@
   </div>
 </div>
 
-<!-- Weekly Statistics Card -->
 <div class="card">
-  <h3>Weekly Statistics</h3>
+  <h3>Daily Statistics</h3>
 
-  <!-- Graph -->
-  <svg width="100%" height="180" viewBox="0 0 300 180">
-    <polyline class="chart-line"
-      points="
-        10,150
-        50,130
-        90,160
-        130,110
-        170,100
-        210,70
-        250,90
-      " />
-    <!-- dots -->
-    <circle class="chart-dot" cx="10" cy="150" r="5"></circle>
-    <circle class="chart-dot" cx="50" cy="130" r="5"></circle>
-    <circle class="chart-dot" cx="90" cy="160" r="5"></circle>
-    <circle class="chart-dot" cx="130" cy="110" r="5"></circle>
-    <circle class="chart-dot" cx="170" cy="100" r="5"></circle>
-    <circle class="chart-dot" cx="210" cy="70" r="5"></circle>
-    <circle class="chart-dot" cx="250" cy="90" r="5"></circle>
+  <svg id="graph" width="100%" height="180" viewBox="0 0 300 180">
+    <polyline id="graphLine" class="chart-line"
+      points="10,140 50,135 90,145 130,120 170,110 210,100 250,130">
+    </polyline>
+
+    <circle class="chart-dot" cx="10" cy="140" r="5" data-day="Monday"></circle>
+    <circle class="chart-dot" cx="50" cy="135" r="5" data-day="Tuesday"></circle>
+    <circle class="chart-dot" cx="90" cy="145" r="5" data-day="Wednesday"></circle>
+    <circle class="chart-dot" cx="130" cy="120" r="5" data-day="Thursday"></circle>
+    <circle class="chart-dot" cx="170" cy="110" r="5" data-day="Friday"></circle>
+    <circle class="chart-dot" cx="210" cy="100" r="5" data-day="Saturday"></circle>
+    <circle class="chart-dot" cx="250" cy="130" r="5" data-day="Sunday"></circle>
   </svg>
-
 </div>
 
-<!-- Bottom toolbar -->
 <div class="bottom-bar">
   <a href="index.html">
     <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">
@@ -141,54 +126,36 @@
     Stats
   </a>
 </div>
+
 <script>
-  // ========== RANDOM AQI ==========
   const aqValue = document.querySelector(".aq-value");
-
   function updateAQ() {
-    const value = 145 + Math.floor(Math.random() * 6); // 145–150
-    aqValue.textContent = value;
+    aqValue.textContent = 756 + Math.floor(Math.random() * 90);
   }
-  setInterval(updateAQ, 1000); // ทุก 1 วิ
+  setInterval(updateAQ, 1000);
 
+  const tooltip = document.getElementById("tooltip");
+  const svg = document.getElementById("graph");
+  const dots = document.querySelectorAll(".chart-dot");
 
-  // ========== RANDOM GRAPH ==========
-  const graphLine = document.getElementById("graphLine");
+  dots.forEach(dot => {
+    dot.addEventListener("mousemove", e => {
+      const day = dot.getAttribute("data-day");
+      tooltip.style.display = "block";
+      tooltip.textContent = day;
 
-  // สร้างจุดเริ่มต้น 7 จุด
-  let points = [
-    { x: 10,  y: 140 },
-    { x: 50,  y: 135 },
-    { x: 90,  y: 145 },
-    { x: 130, y: 120 },
-    { x: 170, y: 110 },
-    { x: 210, y: 100 },
-    { x: 250, y: 130 },
-  ];
+      const rect = svg.getBoundingClientRect();
+      const cx = parseFloat(dot.getAttribute("cx"));
+      const cy = parseFloat(dot.getAttribute("cy"));
 
-  function randomShift() {
-    points = points.map(p => {
-      // ขยับขึ้นลงแบบสุ่ม +- 10
-      let ny = p.y + (Math.random() * 20 - 10);
-
-      // ลิมิตกราฟไม่ให้หลุด (สูงสุด 160 ต่ำสุด 60)
-      if (ny < 60) ny = 60;
-      if (ny > 160) ny = 160;
-
-      return { x: p.x, y: ny };
+      tooltip.style.left = (rect.left + cx) + "px";
+      tooltip.style.top = (rect.top + cy) + "px";
     });
 
-    drawGraph();
-  }
-
-  function drawGraph() {
-    const pointString = points.map(p => `${p.x},${p.y}`).join(" ");
-    graphLine.setAttribute("points", pointString);
-  }
-
-  // อัปเดตกราฟทุก 1 วิ
-  drawGraph();
-  setInterval(randomShift, 1000);
+    dot.addEventListener("mouseleave", () => {
+      tooltip.style.display = "none";
+    });
+  });
 </script>
 
 </body>
