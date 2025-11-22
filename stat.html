@@ -38,7 +38,7 @@
   .status-dot {
     width: 40px;
     height: 40px;
-    border: 5px solid #4CAF50;
+    border: 5px solid #a23100;
     border-radius: 50%;
   }
 
@@ -52,13 +52,13 @@
   }
 
   .chart-line {
-    stroke: #8BC34A;
+    stroke:  #ff0000;
     stroke-width: 3;
     fill: none;
   }
 
   .chart-dot {
-    fill: #4CAF50;
+    fill: #9b4800;
   }
 
   /* bottom bar */
@@ -97,7 +97,7 @@
     <span>CO₂ Level</span>
     <div>
       <div class="status-dot"></div>
-      <small style="display:block; text-align:center;">Good</small>
+      <small style="display:block; text-align:center;">Bad</small>
     </div>
   </div>
 </div>
@@ -143,7 +143,7 @@
 </div>
 <script>
   // ====== AQI random ======
-  const aqValue = document.querySelector(".aq-value");
+  const aqValue = doCursivement.querySelector(".aq-value");
 
   function updateAQ() {
     const value = 145 + Math.floor(Math.random() * 6); // 145–150
