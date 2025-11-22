@@ -17,9 +17,32 @@
   input:checked + .slider { background-color: #00ff33; }
   input:checked + .slider:before { transform: translateX(26px); }
   .color-picker { width: 100%; margin-top: 10px; }
+
+  /* Bottom toolbar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-around;
+    border-top: 2px solid #ffffff;
+  }
+  .bottom-bar a { text-decoration: none; color: #000000; text-align: center; font-size: 14px; }
+  .bottom-bar img { width: 28px; height: 28px; display: block; margin: 0 auto 4px; }
+
+  input[type="color"], input[type="range"] { -webkit-appearance: none; appearance: none; }
+  input[type="color"] { width: 100%; height: 40px; padding: 0; border: none; background: #ddd; border-radius: 8px; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: #ccc; border-radius: 3px; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #555; border-radius: 50%; margin-top: -7px; }
 </style>
 </head>
 <body>
+
+<!-- Thinker.io library -->
+<script src="https://cdn.thinker.io/thinker.min.js"></script>
 
 <div class="control">
   <h3>Quick Control</h3>
@@ -37,6 +60,13 @@
       <span class="slider"></span>
     </label>
   </div>
+  <div class="toggle">
+    <span>Rainbow</span>
+    <label class="switch">
+      <input type="checkbox" id="rainbowToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
 </div>
 
 <div class="control">
@@ -48,95 +78,49 @@
 <script>
   const lightToggle = document.getElementById('lightToggle');
   const airToggle = document.getElementById('airToggle');
+  const rainbowToggle = document.getElementById('rainbowToggle');
   const colorPicker = document.getElementById('colorPicker');
   const brightness = document.getElementById('brightness');
+  let rainbowOn = false;
 
+  // เชื่อม Thinker.io
+  const thinker = new Thinker("MyDevice1"); // เปลี่ยนเป็น Board ID ของคุณ
+  thinker.connect().then(() => console.log("Connected to board!"));
+
+  // แปลง HEX → RGB
+  function hexToRgb(hex) {
+    const bigint = parseInt(hex.replace("#",""), 16);
+    return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+  }
+
+  // Event listener
   lightToggle.addEventListener('change', () => {
-    console.log('Light is', lightToggle.checked ? 'ON' : 'OFF');
+    thinker.sendData({ state: lightToggle.checked ? "LIGHT ON" : "LIGHT OFF" });
   });
   airToggle.addEventListener('change', () => {
-    console.log('Air Purifier is', airToggle.checked ? 'ON' : 'OFF');
+    thinker.sendData({ state: airToggle.checked ? "AIR ON" : "AIR OFF" });
+  });
+  rainbowToggle.addEventListener('change', () => {
+    rainbowOn = rainbowToggle.checked;
+    thinker.sendData({ state: rainbowOn ? "RAINBOW ON" : "RAINBOW OFF" });
   });
   colorPicker.addEventListener('input', () => {
-    console.log('Selected color:', colorPicker.value);
+    const rgb = hexToRgb(colorPicker.value);
+    if (!rainbowOn) thinker.sendData({ state: `COLOR ${rgb.r} ${rgb.g} ${rgb.b}` });
   });
   brightness.addEventListener('input', () => {
-    console.log('Brightness:', brightness.value);
+    thinker.sendData({ state: `BRIGHTNESS ${brightness.value}` });
   });
 </script>
-<!-- Bottom Toolbar -->
-<style>
-  .bottom-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    padding: 10px 0;
-    display: flex;
-    justify-content: space-around;
-    border-top: 2px solid #ffffff;
-  }
-  .bottom-bar a {
-    text-decoration: none;
-    color: #000000;
-    text-align: center;
-    font-size: 14px;
-  }
-  .bottom-bar img {
-    width: 28px;
-    height: 28px;
-    display: block;
-    margin: 0 auto 4px;
-  }
-  /* ปิด style เริ่มต้นของ Safari */
-input[type="color"],
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-/* ทำให้แสดงผลแบบปกติบน iPad */
-input[type="color"] {
-  width: 100%;
-  height: 40px;
-  padding: 0;
-  border: none;
-  background: #ddd;
-  border-radius: 8px;
-}
-
-/* แถบ slider */
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 6px;
-  background: #ccc;
-  border-radius: 3px;
-}
-
-/* ปุ่มลาก */
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  background: #555;
-  border-radius: 50%;
-  margin-top: -7px;
-}
-
-</style>
 
 <div class="bottom-bar">
   <a href="index.html">
-    <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">
-    Home
+    <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">Home
   </a>
   <a href="stat.html">
-    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">
-    Stats
+    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">Stats
   </a>
 </div>
-
-
 
 </body>
 </html>
