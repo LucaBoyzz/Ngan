@@ -7,7 +7,7 @@
 
 <style>
   body {
-    font-family: sans-serif;
+    font-family: Serif;
     background: #d9d9d9;
     padding: 20px;
     margin: 0;
@@ -38,7 +38,7 @@
   .status-dot {
     width: 40px;
     height: 40px;
-    border: 5px solid #a23100;
+    border: 5px solid #a31000;
     border-radius: 50%;
   }
 
@@ -52,13 +52,13 @@
   }
 
   .chart-line {
-    stroke:  #ff0000;
+    stroke: #ff0000;
     stroke-width: 3;
     fill: none;
   }
 
   .chart-dot {
-    fill: #9b4800;
+    fill: rgb(179, 51, 0);
   }
 
   /* bottom bar */
@@ -97,7 +97,7 @@
     <span>CO₂ Level</span>
     <div>
       <div class="status-dot"></div>
-      <small style="display:block; text-align:center;">Bad</small>
+      <small style="display:block; text-align:center;">Good</small>
     </div>
   </div>
 </div>
@@ -142,51 +142,36 @@
   </a>
 </div>
 <script>
-  // ====== AQI random ======
-  const aqValue = doCursivement.querySelector(".aq-value");
+  // ========== RANDOM AQI ==========
+  const aqValue = document.querySelector(".aq-value");
 
   function updateAQ() {
     const value = 145 + Math.floor(Math.random() * 6); // 145–150
     aqValue.textContent = value;
   }
-  setInterval(updateAQ, 1000);
+  setInterval(updateAQ, 1000); // ทุก 1 วิ
 
 
-  // ====== GRAPH ANIMATION ======
+  // ========== RANDOM GRAPH ==========
   const graphLine = document.getElementById("graphLine");
-  const dotsGroup = document.getElementById("dots");
 
+  // สร้างจุดเริ่มต้น 7 จุด
   let points = [
     { x: 10,  y: 140 },
     { x: 50,  y: 135 },
-    { x: 90,  y: 150 },
+    { x: 90,  y: 145 },
     { x: 130, y: 120 },
     { x: 170, y: 110 },
-    { x: 210, y: 95 },
+    { x: 210, y: 100 },
     { x: 250, y: 130 },
   ];
 
-  function drawGraph() {
-    // สร้าง polyline
-    const pointString = points.map(p => `${p.x},${p.y}`).join(" ");
-    graphLine.setAttribute("points", pointString);
-
-    // วาดจุดใหม่ทุกครั้ง
-    dotsGroup.innerHTML = "";
-    points.forEach(p => {
-      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      c.setAttribute("cx", p.x);
-      c.setAttribute("cy", p.y);
-      c.setAttribute("r", 6);
-      c.setAttribute("fill", "#4CAF50");
-      dotsGroup.appendChild(c);
-    });
-  }
-
   function randomShift() {
     points = points.map(p => {
+      // ขยับขึ้นลงแบบสุ่ม +- 10
       let ny = p.y + (Math.random() * 20 - 10);
 
+      // ลิมิตกราฟไม่ให้หลุด (สูงสุด 160 ต่ำสุด 60)
       if (ny < 60) ny = 60;
       if (ny > 160) ny = 160;
 
@@ -196,6 +181,12 @@
     drawGraph();
   }
 
+  function drawGraph() {
+    const pointString = points.map(p => `${p.x},${p.y}`).join(" ");
+    graphLine.setAttribute("points", pointString);
+  }
+
+  // อัปเดตกราฟทุก 1 วิ
   drawGraph();
   setInterval(randomShift, 1000);
 </script>
