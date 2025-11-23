@@ -3,27 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home page</title>
-
+<title>ESP32 Control</title>
 <style>
-body { font-family: serif, -apple-system, Arial; background:#eee; padding:20px; }
+body { font-family: serif, Arial; background:#eee; padding:20px; }
 .control { background:#fff; padding:20px; margin-bottom:20px; border-radius:10px; }
-.toggle { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.toggle { display:flex; justify-content:space-between; margin-bottom:10px; }
 .switch { position:relative; display:inline-block; width:60px; height:34px; }
 .switch input { display:none; }
-.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#eee; transition:0.4s; border-radius:34px; }
-.slider:before { position:absolute; content:""; height:26px; width:26px; left:4px; bottom:4px; background-color:#777; transition:0.4s; border-radius:50%; }
-input:checked + .slider { background-color:#00ff33; }
+.slider { position:absolute; top:0; left:0; right:0; bottom:0; background:#eee; transition:.4s; border-radius:34px; }
+.slider:before { position:absolute; content:""; height:26px;width:26px; left:4px; bottom:4px; background:#777; transition:.4s; border-radius:50%; }
+input:checked + .slider { background:#00ff33; }
 input:checked + .slider:before { transform:translateX(26px); }
-
-input[type="color"] { width:100%; height:40px; border:none; border-radius:8px; background:#ddd; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#444; }
-
-.bottom-bar { position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:10px 0; display:flex; justify-content:space-around; border-top:2px solid #fff; }
-.bottom-bar a { text-decoration:none; color:#000; text-align:center; font-size:14px; }
-.bottom-bar img { width:28px; height:28px; display:block; margin:0 auto 4px; }
-
-button { padding:10px 15px; background:#333; border:none; color:#fff; border-radius:8px; margin-bottom:15px; }
+input[type="color"]{width:100%;height:40px;border:none;border-radius:8px;background:#ddd;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#444;}
+button{padding:10px 15px;background:#333;border:none;color:#fff;border-radius:8px;margin-bottom:15px;}
+.bottom-bar{position:fixed;bottom:0;width:100%;display:flex;justify-content:space-around;background:#fff;padding:10px 0;}
+.bottom-bar a{color:#000;text-align:center;text-decoration:none;font-size:14px;}
+.bottom-bar img{width:28px;height:28px;display:block;margin:0 auto 4px;}
 </style>
 </head>
 <body>
@@ -34,12 +30,9 @@ button { padding:10px 15px; background:#333; border:none; color:#fff; border-rad
 
 <div class="control">
 <h3>Quick Control</h3>
-<div class="toggle"><span>Light</span>
-<label class="switch"><input type="checkbox" id="lightToggle"><span class="slider"></span></label></div>
-<div class="toggle"><span>Air Purifier</span>
-<label class="switch"><input type="checkbox" id="airToggle"><span class="slider"></span></label></div>
-<div class="toggle"><span>Rainbow</span>
-<label class="switch"><input type="checkbox" id="rainbowToggle"><span class="slider"></span></label></div>
+<div class="toggle"><span>Light</span><label class="switch"><input type="checkbox" id="lightToggle"><span class="slider"></span></label></div>
+<div class="toggle"><span>Air Purifier</span><label class="switch"><input type="checkbox" id="airToggle"><span class="slider"></span></label></div>
+<div class="toggle"><span>Rainbow</span><label class="switch"><input type="checkbox" id="rainbowToggle"><span class="slider"></span></label></div>
 </div>
 
 <div class="control">
@@ -51,59 +44,56 @@ button { padding:10px 15px; background:#333; border:none; color:#fff; border-rad
 <script>
 let port, writer;
 let rainbowOn = false;
+const ESP_IP = "192.168.xxx.xxx"; // ใส่ IP ESP32 Wi-Fi
 
 // USB connect
 document.getElementById("usbConnectBtn").addEventListener("click", async () => {
-    try {
-        port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
-        writer = port.writable.getWriter();
-        alert("Connected to ESP32 via USB!");
-    } catch(err) {
-        alert("USB connection failed: " + err);
-    }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    writer = port.writable.getWriter();
+    alert("Connected to ESP32 via USB!");
+  } catch(err) {
+    alert("USB connection failed: " + err);
+  }
 });
 
-// ส่งคำสั่ง
-async function sendCommand(msg) {
-    if(writer){
-        await writer.write(new TextEncoder().encode(msg + "\n"));
-    } else {
-        // fallback Wi-Fi
-        fetch(`http://ESP32_IP_ADDRESS/${encodeURIComponent(msg)}`);
-    }
+// Send command (USB first, Wi-Fi fallback)
+async function sendCommand(msg){
+  if(writer){
+    await writer.write(new TextEncoder().encode(msg+"\n"));
+  } else {
+    fetch(`http://${ESP_IP}/command?cmd=${encodeURIComponent(msg)}`)
+      .catch(e=>console.log("ESP32 unreachable via Wi-Fi"));
+  }
 }
 
 function hexToRgb(hex){
-    const n = parseInt(hex.replace("#",""),16);
-    return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+  const n = parseInt(hex.replace("#",""),16);
+  return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
 }
 
 // UI events
-const lightToggle = document.getElementById("lightToggle");
-const airToggle = document.getElementById("airToggle");
-const rainbowToggle = document.getElementById("rainbowToggle");
-const colorPicker = document.getElementById("colorPicker");
-const brightness = document.getElementById("brightness");
-
-lightToggle.addEventListener("change", ()=>sendCommand(lightToggle.checked?"COLOR 255 255 255":"COLOR 0 0 0"));
-airToggle.addEventListener("change", ()=>sendCommand(airToggle.checked?"AIR ON":"AIR OFF"));
-rainbowToggle.addEventListener("change", ()=>{
-    rainbowOn = rainbowToggle.checked;
-    sendCommand(rainbowOn?"RAINBOW ON":"RAINBOW OFF");
+document.getElementById("lightToggle").addEventListener("change", ()=>sendCommand(this.checked?"COLOR 255 255 255":"COLOR 0 0 0"));
+document.getElementById("airToggle").addEventListener("change", ()=>sendCommand(this.checked?"AIR ON":"AIR OFF"));
+document.getElementById("rainbowToggle").addEventListener("change", (e)=>{
+  rainbowOn = e.target.checked;
+  sendCommand(rainbowOn?"RAINBOW ON":"RAINBOW OFF");
 });
-colorPicker.addEventListener("input", ()=>{
-    if(!rainbowOn){
-        const rgb = hexToRgb(colorPicker.value);
-        sendCommand(`COLOR ${rgb.r} ${rgb.g} ${rgb.b}`);
-    }
+document.getElementById("colorPicker").addEventListener("input",(e)=>{
+  if(!rainbowOn){
+    const c = hexToRgb(e.target.value);
+    sendCommand(`COLOR ${c.r} ${c.g} ${c.b}`);
+  }
 });
-brightness.addEventListener("input", ()=>sendCommand(`BRIGHTNESS ${brightness.value}`));
+document.getElementById("brightness").addEventListener("input",(e)=>{
+  sendCommand(`BRIGHTNESS ${e.target.value}`);
+});
 </script>
 
 <div class="bottom-bar">
-  <a href="index.html"><img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">Home</a>
-  <a href="stat.html"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">Stats</a>
+<a href="index.html"><img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">Home</a>
+<a href="stat.html"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">Stats</a>
 </div>
 
 </body>
