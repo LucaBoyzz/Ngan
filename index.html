@@ -6,138 +6,104 @@
 <title>Home page</title>
 
 <style>
-  body { font-family: serif, -apple-system, Arial; background:#eee; padding:20px; }
-  .control { background:#fff; padding:20px; margin-bottom:20px; border-radius:10px; }
-  .toggle { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .switch { position:relative; display:inline-block; width:60px; height:34px; }
-  .switch input { display:none; }
-  .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
-            background-color:#eee; transition:0.4s; border-radius:34px; }
-  .slider:before { position:absolute; content:""; height:26px; width:26px; left:4px; bottom:4px;
-                   background-color:#777; transition:0.4s; border-radius:50%; }
-  input:checked + .slider { background-color:#00ff33; }
-  input:checked + .slider:before { transform:translateX(26px); }
+body { font-family: serif, -apple-system, Arial; background:#eee; padding:20px; }
+.control { background:#fff; padding:20px; margin-bottom:20px; border-radius:10px; }
+.toggle { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.switch { position:relative; display:inline-block; width:60px; height:34px; }
+.switch input { display:none; }
+.slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#eee; transition:0.4s; border-radius:34px; }
+.slider:before { position:absolute; content:""; height:26px; width:26px; left:4px; bottom:4px; background-color:#777; transition:0.4s; border-radius:50%; }
+input:checked + .slider { background-color:#00ff33; }
+input:checked + .slider:before { transform:translateX(26px); }
 
-  input[type="color"] { width:100%; height:40px; border:none; border-radius:8px; background:#ddd; }
-  input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#444; }
-  
-  .bottom-bar { position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:10px 0;
-                display:flex; justify-content:space-around; border-top:2px solid #fff; }
-  .bottom-bar a { text-decoration:none; color:#000; text-align:center; font-size:14px; }
-  .bottom-bar img { width:28px; height:28px; display:block; margin:0 auto 4px; }
+input[type="color"] { width:100%; height:40px; border:none; border-radius:8px; background:#ddd; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#444; }
 
-  button {
-    padding:10px 15px;
-    background:#333;
-    border:none;
-    color:#fff;
-    border-radius:8px;
-    margin-bottom:15px;
-  }
+.bottom-bar { position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:10px 0; display:flex; justify-content:space-around; border-top:2px solid #fff; }
+.bottom-bar a { text-decoration:none; color:#000; text-align:center; font-size:14px; }
+.bottom-bar img { width:28px; height:28px; display:block; margin:0 auto 4px; }
+
+button { padding:10px 15px; background:#333; border:none; color:#fff; border-radius:8px; margin-bottom:15px; }
 </style>
 </head>
 <body>
 
-<button onclick="connectESP()">🔌 Connect to ESP32</button>
+<h2>ESP32 Control</h2>
+<button id="usbConnectBtn">🔌 Connect USB</button>
+<p>หรือเข้าผ่าน Wi‑Fi เปิดเว็บจาก ESP32</p>
 
 <div class="control">
-  <h3>Quick Control</h3>
-
-  <div class="toggle">
-    <span>Light</span>
-    <label class="switch">
-      <input type="checkbox" id="lightToggle">
-      <span class="slider"></span>
-    </label>
-  </div>
-
-  <div class="toggle">
-    <span>Air Purifier</span>
-    <label class="switch">
-      <input type="checkbox" id="airToggle">
-      <span class="slider"></span>
-    </label>
-  </div>
-
-  <div class="toggle">
-    <span>Rainbow</span>
-    <label class="switch">
-      <input type="checkbox" id="rainbowToggle">
-      <span class="slider"></span>
-    </label>
-  </div>
+<h3>Quick Control</h3>
+<div class="toggle"><span>Light</span>
+<label class="switch"><input type="checkbox" id="lightToggle"><span class="slider"></span></label></div>
+<div class="toggle"><span>Air Purifier</span>
+<label class="switch"><input type="checkbox" id="airToggle"><span class="slider"></span></label></div>
+<div class="toggle"><span>Rainbow</span>
+<label class="switch"><input type="checkbox" id="rainbowToggle"><span class="slider"></span></label></div>
 </div>
 
 <div class="control">
-  <h3>Color</h3>
-  <input type="color" id="colorPicker">
-  <input type="range" min="0" max="100" value="100" id="brightness">
+<h3>Color</h3>
+<input type="color" id="colorPicker">
+<input type="range" min="0" max="100" value="100" id="brightness">
 </div>
 
 <script>
-  let port, writer;
-  let rainbowOn = false;
+let port, writer;
+let rainbowOn = false;
 
-  async function connectESP() {
+// USB connect
+document.getElementById("usbConnectBtn").addEventListener("click", async () => {
     try {
-      port = await navigator.serial.requestPort();
-      await port.open({ baudRate: 115200 });
-      writer = port.writable.getWriter();
-      alert("Connected to ESP32!");
-    } catch (err) {
-      alert("Connection failed: " + err);
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+        writer = port.writable.getWriter();
+        alert("Connected to ESP32 via USB!");
+    } catch(err) {
+        alert("USB connection failed: " + err);
     }
-  }
+});
 
-  async function sendSerial(msg) {
-    if (!writer) return alert("❗ ยังไม่ได้กด Connect");
-    await writer.write(new TextEncoder().encode(msg + "\n"));
-  }
+// ส่งคำสั่ง
+async function sendCommand(msg) {
+    if(writer){
+        await writer.write(new TextEncoder().encode(msg + "\n"));
+    } else {
+        // fallback Wi-Fi
+        fetch(`http://ESP32_IP_ADDRESS/${encodeURIComponent(msg)}`);
+    }
+}
 
-  function hexToRgb(hex) {
-    const n = parseInt(hex.replace("#",""), 16);
-    return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
-  }
+function hexToRgb(hex){
+    const n = parseInt(hex.replace("#",""),16);
+    return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+}
 
-  // UI elements
-  const lightToggle    = document.getElementById("lightToggle");
-  const airToggle      = document.getElementById("airToggle");
-  const rainbowToggle  = document.getElementById("rainbowToggle");
-  const colorPicker    = document.getElementById("colorPicker");
-  const brightness     = document.getElementById("brightness");
+// UI events
+const lightToggle = document.getElementById("lightToggle");
+const airToggle = document.getElementById("airToggle");
+const rainbowToggle = document.getElementById("rainbowToggle");
+const colorPicker = document.getElementById("colorPicker");
+const brightness = document.getElementById("brightness");
 
-  lightToggle.addEventListener("change", () => {
-    sendSerial(lightToggle.checked ? "COLOR 255 255 255" : "COLOR 0 0 0");
-  });
-
-  airToggle.addEventListener("change", () => {
-    sendSerial(airToggle.checked ? "AIR ON" : "AIR OFF");
-  });
-
-  rainbowToggle.addEventListener("change", () => {
+lightToggle.addEventListener("change", ()=>sendCommand(lightToggle.checked?"COLOR 255 255 255":"COLOR 0 0 0"));
+airToggle.addEventListener("change", ()=>sendCommand(airToggle.checked?"AIR ON":"AIR OFF"));
+rainbowToggle.addEventListener("change", ()=>{
     rainbowOn = rainbowToggle.checked;
-    sendSerial(rainbowOn ? "RAINBOW ON" : "RAINBOW OFF");
-  });
-
-  colorPicker.addEventListener("input", () => {
-    if (!rainbowOn) {
-      const rgb = hexToRgb(colorPicker.value);
-      sendSerial(`COLOR ${rgb.r} ${rgb.g} ${rgb.b}`);
+    sendCommand(rainbowOn?"RAINBOW ON":"RAINBOW OFF");
+});
+colorPicker.addEventListener("input", ()=>{
+    if(!rainbowOn){
+        const rgb = hexToRgb(colorPicker.value);
+        sendCommand(`COLOR ${rgb.r} ${rgb.g} ${rgb.b}`);
     }
-  });
-
-  brightness.addEventListener("input", () => {
-    sendSerial(`BRIGHTNESS ${brightness.value}`);
-  });
+});
+brightness.addEventListener("input", ()=>sendCommand(`BRIGHTNESS ${brightness.value}`));
 </script>
 
 <div class="bottom-bar">
-  <a href="index.html">
-    <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">Home
-  </a>
-  <a href="stat.html">
-    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">Stats
-  </a>
+  <a href="index.html"><img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png">Home</a>
+  <a href="stat.html"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">Stats</a>
 </div>
 
 </body>
