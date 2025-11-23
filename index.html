@@ -63,7 +63,7 @@ async function sendCommand(msg){
   if(writer){
     await writer.write(new TextEncoder().encode(msg+"\n"));
   } else {
-    fetch(`http://${ESP_IP}/command?cmd=${encodeURIComponent(msg)}`)
+    fetch(`http://10.222.10.166/command?cmd=${encodeURIComponent(msg)}`)
       .catch(e=>console.log("ESP32 unreachable via Wi-Fi"));
   }
 }
